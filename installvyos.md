@@ -1,4 +1,4 @@
-# Documentation de réflection sur la Configuration Réseau avec VyOS et pfSense (avant installation)
+# Réflection sur la Configuration Réseau avec VyOS et pfSense (avant installation)
 
 ## Introduction
 Ce document présente les différentes options de configuration réseau que nous avons envisagées pour notre infrastructure virtuelle utilisant VyOS comme routeur et pfSense comme pare-feu. Après avoir évalué les avantages et les inconvénients de chaque option, nous avons choisi une configuration initiale qui est simple, évolutive, et qui nous prépare à intégrer des concepts plus avancés, comme les VLANs, dans un futur proche.
@@ -64,5 +64,62 @@ Après avoir évalué les deux options, nous avons choisi l'**Option 1 : Deux In
 2. **Planification Future** : En intégrant les VLANs plus tard, nous pourrons segmenter logiquement notre réseau de manière professionnelle, tout en restant économique en termes de ressources.
 3. **Vision à Long Terme** : Cette approche nous prépare à l'avenir, en anticipant les besoins futurs de l'infrastructure réseau, tout en restant alignée avec notre progression dans l'apprentissage des concepts de réseau.
 
-## Installation de VyOS et Configuration Initiale
 
+# Mise en place et configuration d'un routeur VyOS avec une passerelle pfSense sous Proxmox
+
+## Étape 1 : Création des interfaces sur Proxmox pour VyOS
+
+1. **Accéder à l'interface Web de Proxmox** :
+   - Ouvrez votre navigateur et connectez-vous à l'interface web de votre serveur Proxmox avec vos identifiants.
+
+2. **Créer des interfaces réseau pour VyOS** :
+   - **Sélectionnez la VM de VyOS** : Dans la vue principale de Proxmox, sélectionnez la machine virtuelle (VM) VyOS que vous avez déjà créée.
+   - **Accédez à l'onglet Hardware** :
+     - Dans le menu de gauche, cliquez sur "Hardware".
+   - **Ajoutez une interface réseau** :
+     - Cliquez sur "Add" puis sélectionnez "Network Device".
+   - **Configuration de l'interface réseau** :
+     - **Bridge** : Sélectionnez le bridge nommé `G2` qui connectera votre VM VyOS au réseau souhaité.
+     - **Model** : Choisissez "Intel E1000" comme modèle d'interface réseau.
+   - **Répétez la procédure** :
+     - Recommencez cette procédure pour chaque sous-réseau que vous souhaitez connecter à VyOS.    
+
+## Configuration de l'Interface `eth0` (vers pfSense)
+
+L'interface `eth0` sur VyOS doit être configurée avec une adresse IP statique pour se connecter à pfSense. Voici les étapes pour configurer cette interface :
+
+### Étape 1 : Configurer l'Adresse IP Statique pour `eth0`
+
+Attribuez l'adresse IP `172.168.1.2/30` à l'interface `eth0` :
+
+```bash
+set interfaces ethernet eth0 address 172.168.1.2/30
+
+3. **Appliquer les changements** :
+   - Une fois toutes les interfaces configurées, appliquez les changements avec la commande suivante :
+     ```bash
+     commit
+     ```
+   - Enregistrez la configuration pour qu'elle persiste après un redémarrage :
+     ```bash
+     save
+     ```
+
+## Étape 3 : Configuration de la passerelle pfSense
+
+1. **Créer une VM pour pfSense sur Proxmox** :
+   - Suivez un processus similaire pour créer une VM pfSense sur Proxmox.
+   - Configurez les interfaces réseau pour qu'elles correspondent aux sous-réseaux gérés par VyOS.
+
+2. **Configurer pfSense** :
+   - Une fois pfSense installé, accédez à son interface web et configurez les interfaces réseau avec les adresses IP qui correspondent à celles configurées sur VyOS.
+   - Assurez-vous de configurer les routes nécessaires pour permettre la communication entre les sous-réseaux via VyOS et pfSense.
+
+## Étape 4 : Vérification et tests
+
+1. **Tester la connectivité** :
+   - Assurez-vous que chaque sous-réseau configuré sur VyOS est accessible via pfSense.
+   - Testez la connectivité entre les sous-réseaux et vérifiez que le routage fonctionne comme prévu.
+
+2. **Monitorer les logs** :
+   - Vérifiez les logs sur VyOS et pfSense pour détecter d'éventuelles erreurs ou problèmes de connectivité.
